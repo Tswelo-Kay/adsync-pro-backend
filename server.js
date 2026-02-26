@@ -6,6 +6,7 @@ require('dotenv').config();
 
 const { sequelize } = require('./models');
 const authRoutes = require('./routes/auth');
+const campaignRoutes = require('./routes/campaigns');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -18,6 +19,7 @@ app.use(express.json());
 
 // ─── Routes ───────────────────────────────────────────────────
 app.use('/api/auth', authRoutes);
+app.use('/api/campaigns', campaignRoutes);
 
 // ─── Home Route (just to confirm server is running) ───────────
 app.get('/', (req, res) => {
