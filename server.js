@@ -10,6 +10,7 @@ const authRoutes = require('./routes/auth');
 const campaignRoutes = require('./routes/campaigns');
 const uploadRoutes = require('./routes/upload');
 const errorHandler = require('./middleware/errorHandler');
+require('./utils/emailService');
 
 const app = express();
 const PORT = process.env.PORT || 5000;

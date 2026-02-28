@@ -48,6 +48,8 @@ router.post('/register', [
     });
 
     // Generate token
+    const { sendWelcomeEmail } = require('../utils/emailService');
+sendWelcomeEmail(user);
     const token = generateToken(user.id);
 
     return res.status(201).json({
