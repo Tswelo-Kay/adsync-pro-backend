@@ -188,4 +188,55 @@ router.put('/change-password', protect, async (req, res) => {
   }
 });
 
+// FORGOT PASSWORD
+router.post('/forgot-password', async (req, res) => {
+  try {
+    const { email } = req.body;
+    const { User } = require('../models');
+    const user = await User.findOne({ where: { email } });
+    if (!user) {
+      return res.status(200).json({ success: true, message: 'If that email exists, a reset code has been sent.' });
+    }
+    const resetToken = Math.floor(100000 + Math.random() * 900000).toString();
+    const expires = new Date(Date.now() + 15 * 60 * 1000);
+    await User.update(
+      { resetPasswordToken: resetToken, resetPasswordExpires: expires },
+      { where: { id: user.id } }
+    );
+    const { sendPasswordResetEmail } = require('../utils/emailService');
+    await sendPasswordResetEmail(user, resetToken);
+    return res.status(200).json({ success: true, message: 'Reset code sent to your email!' });
+  } catch (error) {
+    console.error('Forgot password error:', error.message);
+    return res.status(500).json({ success: false, message: 'Server error.' });
+  }
+});
+
+// RESET PASSWORD
+router.post('/reset-password', async (req, res) => {
+  try {
+    const { email, token, newPassword } = req.body;
+    const { User } = require('../models');
+    const { Op } = require('sequelize');
+    const user = await User.findOne({
+      where: {
+        email,
+        resetPasswordToken: token,
+        resetPasswordExpires: { [Op.gt]: new Date() }
+      }
+    });
+    if (!user) {
+      return res.status(400).json({ success: false, message: 'Invalid or expired reset code.' });
+    }
+    const bcrypt = require('bcryptjs');
+    const hashed = await bcrypt.hash(newPassword, 12);
+    await User.update(
+      { password: hashed, resetPasswordToken: null, resetPasswordExpires: null },
+      { where: { id: user.id } }
+    );
+    return res.status(200).json({ success: true, message: 'Password reset successfully! You can now log in.' });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: 'Server error.' });
+  }
+});
 module.exports = router;

@@ -36,6 +36,14 @@ const User = sequelize.define('User', {
     type: DataTypes.STRING,
     allowNull: true
   },
+  resetPasswordToken: {
+  type: DataTypes.STRING,
+  allowNull: true
+},
+resetPasswordExpires: {
+  type: DataTypes.DATE,
+  allowNull: true
+},
   subscriptionPlan: {
     type: DataTypes.ENUM('free', 'starter', 'growth', 'enterprise'),
     defaultValue: 'free'
