@@ -87,5 +87,23 @@ User.prototype.toSafeObject = function() {
   const { password, ...safeUser } = this.toJSON();
   return safeUser;
 };
+// Compare entered password with stored hashed password
+User.prototype.comparePassword = async function(enteredPassword) {
+  return await bcrypt.compare(enteredPassword, this.password);
+};
+
+// Return user object without password
+User.prototype.toSafeObject = function() {
+  return {
+    id: this.id,
+    firstName: this.firstName,
+    lastName: this.lastName,
+    email: this.email,
+    businessName: this.businessName,
+    phone: this.phone,
+    subscriptionPlan: this.subscriptionPlan,
+    createdAt: this.createdAt
+  };
+};
 
 module.exports = User;

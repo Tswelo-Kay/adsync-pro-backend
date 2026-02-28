@@ -141,5 +141,49 @@ router.post('/logout', protect, async (req, res) => {
     message: 'Logged out successfully.'
   });
 });
+// UPDATE PROFILE
+// PUT /api/auth/me
+router.put('/me', protect, async (req, res) => {
+  try {
+    const { firstName, lastName, businessName, phone } = req.body;
+    const user = req.user;
+    if (firstName) user.firstName = firstName;
+    if (lastName !== undefined) user.lastName = lastName;
+    if (businessName !== undefined) user.businessName = businessName;
+    if (phone !== undefined) user.phone = phone;
+    await user.save();
+    return res.status(200).json({
+      success: true,
+      message: 'Profile updated successfully.',
+      user: user.toSafeObject()
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: 'Server error.' });
+  }
+});
+
+// CHANGE PASSWORD
+// PUT /api/auth/change-password
+router.put('/change-password', protect, async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ success: false, message: 'Please provide both passwords.' });
+    }
+    const bcrypt = require('bcryptjs');
+    const { User } = require('../models');
+    const user = await User.findByPk(req.user.id);
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ success: false, message: 'Current password is incorrect.' });
+    }
+    const hashed = await bcrypt.hash(newPassword, 12);
+    await User.update({ password: hashed }, { where: { id: req.user.id }, individualHooks: false });
+    return res.status(200).json({ success: true, message: 'Password changed successfully.' });
+    return res.status(200).json({ success: true, message: 'Password changed successfully.' });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: 'Server error.' });
+  }
+});
 
 module.exports = router;
