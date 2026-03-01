@@ -45,7 +45,7 @@ resetPasswordExpires: {
   allowNull: true
 },
   subscriptionPlan: {
-    type: DataTypes.ENUM('free', 'starter', 'growth', 'enterprise'),
+    type: DataTypes.ENUM('free', 'pro', 'business'),
     defaultValue: 'free'
   },
   subscriptionStatus: {
