@@ -19,6 +19,26 @@ router.post('/', [
       return res.status(400).json({ success: false, errors: errors.array() });
     }
 
+     // 🔒 Check campaign limits based on plan
+    const user = await req.user.reload();
+    const plan = user.subscriptionPlan || 'free';
+    const planLimits = { free: 3, pro: 12, business: 999999 };
+    const limit = planLimits[plan];
+
+    const campaignCount = await Campaign.count({
+      where: { userId: req.user.id }
+    });
+
+    if (campaignCount >= limit) {
+      return res.status(403).json({
+        success: false,
+        limitReached: true,
+        message: `You've reached your ${plan} plan limit of ${limit} campaigns. Please upgrade to create more!`,
+        currentPlan: plan,
+        campaignCount,
+        limit
+      });
+    }
     const {
       name, description, mediaType, mediaUrl, adCopyText,
       websiteUrl, whatsappNumber, whatsappMessage,
