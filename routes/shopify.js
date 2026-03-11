@@ -6,8 +6,8 @@ const { Pool } = require('pg');
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } });
 
-const SHOPIFY_API_KEY = process.env.SHOPIFY_API_KEY || '93a6c0a81f85bef224e3859596c1c985';
-const SHOPIFY_API_SECRET = process.env.SHOPIFY_API_SECRET || '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';
+const SHOPIFY_API_KEY = process.env.SHOPIFY_API_KEY;
+const SHOPIFY_API_SECRET = process.env.SHOPIFY_API_SECRET;
 const SHOPIFY_SCOPES = 'read_products,read_analytics,read_orders,read_inventory';
 const REDIRECT_URI = `${process.env.BACKEND_URL || 'https://adsync-pro-backend-production.up.railway.app'}/auth/shopify/callback`;
 const FRONTEND_URL = process.env.FRONTEND_URL || 'https://heroic-pastelito-b39094.netlify.app';
