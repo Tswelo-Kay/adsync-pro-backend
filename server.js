@@ -12,6 +12,7 @@ const authRoutes = require('./routes/auth');
 const campaignRoutes = require('./routes/campaigns');
 const uploadRoutes = require('./routes/upload');
 const subscriptionRoutes = require('./routes/subscriptions');
+const shopifyRoutes = require('./routes/shopify');
 const errorHandler = require('./middleware/errorHandler');
 require('./utils/emailService');
 
@@ -45,6 +46,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/campaigns', campaignRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
+app.use('/', shopifyRoutes);
 app.use('/uploads', express.static('uploads'));
 
 // ─── Home Route (just to confirm server is running) ───────────
