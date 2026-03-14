@@ -49,6 +49,8 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
 app.use('/', shopifyRoutes);
 app.use('/', takealotRoutes);
+const metaRoutes = require('./routes/meta');
+app.use('/meta', metaRoutes);
 app.use('/uploads', express.static('uploads'));
 
 // ─── Home Route (just to confirm server is running) ───────────
