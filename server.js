@@ -53,36 +53,6 @@ const metaRoutes = require('./routes/meta');
 app.use('/meta', metaRoutes);
 const buyBoxRoutes = require('./routes/buybox');
 app.use('/buybox', buyBoxRoutes);
-// Buy Box tables
-pool.query(`
-  CREATE TABLE IF NOT EXISTS buy_box_status (
-    id SERIAL PRIMARY KEY,
-    user_id INTEGER NOT NULL,
-    product_id VARCHAR(100) NOT NULL,
-    product_name VARCHAR(255),
-    our_price DECIMAL(10,2),
-    winning_price DECIMAL(10,2),
-    price_gap DECIMAL(10,2),
-    competitor_count INTEGER DEFAULT 0,
-    is_winning BOOLEAN DEFAULT false,
-    last_checked TIMESTAMPTZ DEFAULT NOW(),
-    UNIQUE(user_id, product_id)
-  );
-
-  CREATE TABLE IF NOT EXISTS buy_box_actions (
-    id SERIAL PRIMARY KEY,
-    user_id INTEGER NOT NULL,
-    product_id VARCHAR(100) NOT NULL,
-    product_name VARCHAR(255),
-    action VARCHAR(50) NOT NULL,
-    trigger_reason TEXT,
-    our_price DECIMAL(10,2),
-    winning_price DECIMAL(10,2),
-    estimated_saving DECIMAL(10,2) DEFAULT 0,
-    created_at TIMESTAMPTZ DEFAULT NOW()
-  );
-`).then(() => console.log('✅ Buy Box tables ready'))
-  .catch(err => console.error('Buy Box tables error:', err));
 app.use('/uploads', express.static('uploads'));
 
 // ─── Home Route (just to confirm server is running) ───────────
