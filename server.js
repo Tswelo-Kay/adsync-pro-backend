@@ -14,8 +14,6 @@ const uploadRoutes = require('./routes/upload');
 const subscriptionRoutes = require('./routes/subscriptions');
 const shopifyRoutes = require('./routes/shopify');
 const takealotRoutes = require('./routes/takealot');
-const buyBoxRoutes = require('./routes/buybox');
-app.use('/buybox', buyBoxRoutes);
 const errorHandler = require('./middleware/errorHandler');
 require('./utils/emailService');
 
@@ -53,6 +51,8 @@ app.use('/', shopifyRoutes);
 app.use('/', takealotRoutes);
 const metaRoutes = require('./routes/meta');
 app.use('/meta', metaRoutes);
+const buyBoxRoutes = require('./routes/buybox');
+app.use('/buybox', buyBoxRoutes);
 // Buy Box tables
 pool.query(`
   CREATE TABLE IF NOT EXISTS buy_box_status (
