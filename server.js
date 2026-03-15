@@ -53,6 +53,8 @@ const metaRoutes = require('./routes/meta');
 app.use('/meta', metaRoutes);
 const buyBoxRoutes = require('./routes/buybox');
 app.use('/buybox', buyBoxRoutes);
+const recommendationRoutes = require('./routes/recommendations');
+app.use('/recommendations', recommendationRoutes);
 app.use('/uploads', express.static('uploads'));
 
 // ─── Home Route (just to confirm server is running) ───────────
