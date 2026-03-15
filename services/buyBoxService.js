@@ -15,12 +15,9 @@ async function runBuyBoxGuard() {
 
   try {
     // Get all users with Takealot connected
-    const users = await pool.query(`
-  SELECT u.id, t.encrypted_api_key 
-  FROM users u
-  JOIN takealot_stores t ON t.user_id = u.id::text = u.id::text
-  WHERE t.encrypted_api_key IS NOT NULL
-`);
+    const users = await pool.query(
+  'SELECT u.id, t.encrypted_api_key FROM users u JOIN takealot_stores t ON CAST(t.user_id AS TEXT) = CAST(u.id AS TEXT) WHERE t.encrypted_api_key IS NOT NULL'
+);
 
 
     for (const user of users.rows) {
