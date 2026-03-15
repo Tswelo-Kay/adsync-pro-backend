@@ -18,7 +18,7 @@ async function runBuyBoxGuard() {
     const users = await pool.query(`
   SELECT u.id, t.encrypted_api_key 
   FROM users u
-  JOIN takealot_stores t ON t.user_id = u.id
+  JOIN takealot_stores t ON t.user_id = u.id::text
   WHERE t.encrypted_api_key IS NOT NULL
 `);
 
