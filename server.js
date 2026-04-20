@@ -30,14 +30,16 @@ app.use(express.json({ limit: '10kb' }));
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
-  message: { success: false, message: 'Too many requests. Please wait 15 minutes.' }
+  message: { success: false, message: 'Too many requests. Please wait 15 minutes.' },
+  validate: { xForwardedForHeader: false }
 });
 
 // Stricter limit for login/register - max 10 attempts per 15 minutes
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 10,
-  message: { success: false, message: 'Too many login attempts. Please wait 15 minutes.' }
+  message: { success: false, message: 'Too many login attempts. Please wait.' },
+  validate: { xForwardedForHeader: false }
 });
 
 app.use('/api/', limiter);
