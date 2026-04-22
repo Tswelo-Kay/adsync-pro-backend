@@ -53,6 +53,8 @@ app.use('/', shopifyRoutes);
 app.use('/', takealotRoutes);
 const metaRoutes = require('./routes/meta');
 app.use('/meta', metaRoutes);
+const helpChatRouter = require('./routes/helpChat');
+app.use('/api/help-chat', helpChatRouter);
 const buyBoxRoutes = require('./routes/buybox');
 app.use('/buybox', buyBoxRoutes);
 const recommendationRoutes = require('./routes/recommendations');
