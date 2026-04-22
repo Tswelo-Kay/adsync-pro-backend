@@ -61,8 +61,6 @@ const recommendationRoutes = require('./routes/recommendations');
 app.use('/recommendations', recommendationRoutes);
 const adGeneratorRoutes = require('./routes/adGenerator');
 app.use('/api/ads', adGeneratorRoutes);
-const helpChatRouter = require('./routes/helpChat');
-app.use('/api/help-chat', helpChatRouter);
 app.use('/uploads', express.static('uploads'));
 
 // ─── Home Route (just to confirm server is running) ───────────
