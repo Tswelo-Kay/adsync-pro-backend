@@ -53,6 +53,8 @@ app.use('/', shopifyRoutes);
 app.use('/', takealotRoutes);
 const metaRoutes = require('./routes/meta');
 app.use('/meta', metaRoutes);
+const googleAdsRoutes = require('./routes/googleAds');
+app.use('/api/google-ads', googleAdsRoutes);
 const helpChatRouter = require('./routes/helpChat');
 app.use('/api/help-chat', helpChatRouter);
 const buyBoxRoutes = require('./routes/buybox');
