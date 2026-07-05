@@ -7,12 +7,12 @@ const sequelize = new Sequelize({
   username: process.env.DB_USER || process.env.PGUSER,
   password: process.env.DB_PASSWORD || process.env.PGPASSWORD,
   dialect: 'postgres',
-  dialectOptions: {
+  dialectOptions: process.env.NODE_ENV === 'production' ? {
     ssl: {
       require: true,
       rejectUnauthorized: false
     }
-  },
+  } : {},
   logging: false
 });
 

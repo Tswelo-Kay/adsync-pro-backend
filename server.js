@@ -63,6 +63,8 @@ const recommendationRoutes = require('./routes/recommendations');
 app.use('/recommendations', recommendationRoutes);
 const adGeneratorRoutes = require('./routes/adGenerator');
 app.use('/api/ads', adGeneratorRoutes);
+const flashAdsRoutes = require('./routes/flashAds');
+app.use('/api/flash-ads', flashAdsRoutes);
 app.use('/uploads', express.static('uploads'));
 
 // ─── Home Route (just to confirm server is running) ───────────
@@ -98,3 +100,6 @@ setInterval(() => {
 
 // Run once on startup too
 runBuyBoxGuard();
+// —— Flash Ads Scheduler - runs every 60 seconds
+const { startFlashAdsScheduler } = require('./services/flashAdsScheduler');
+startFlashAdsScheduler();
