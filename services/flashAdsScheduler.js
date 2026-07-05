@@ -25,7 +25,7 @@ const runFlashAdsCheck = async () => {
 
 const startFlashAdsScheduler = () => {
   setInterval(runFlashAdsCheck, 60 * 1000); // every 60 seconds
-  runFlashAdsCheck(); // run once on startup too
+  setTimeout(runFlashAdsCheck, 10000); // wait 10 seconds on startup so DB tables are ready
   console.log('✅ Flash Ads scheduler started');
 };
 
