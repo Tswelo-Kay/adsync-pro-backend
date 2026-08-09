@@ -97,19 +97,101 @@ if (rows.length === 0) {
   }
 });
 
-// ─── CREATE CAMPAIGN ─────────────────────────────────────────
+// —— CREATE CAMPAIGN (real Google Ads API)
 router.post('/campaigns/create', async (req, res) => {
-  const { campaignName, budget, platforms } = req.body;
+  const { campaignName, budget } = req.body;
   try {
     const [rows] = await sequelize.query(
-  'SELECT * FROM google_ads_connections ORDER BY connected_at DESC LIMIT 1'
-);
+      'SELECT * FROM google_ads_connections ORDER BY connected_at DESC LIMIT 1'
+    );
 
     if (rows.length === 0) {
       return res.status(401).json({ error: 'Google Ads not connected' });
     }
 
-    // Store campaign in DB for now (full API integration after Basic access approval)
+    const { access_token } = rows[0];
+
+    // Get the customer ID
+    const customerRes = await fetch(
+      'https://googleads.googleapis.com/v24/customers:listAccessibleCustomers',
+      {
+        headers: {
+          'Authorization': `Bearer ${access_token}`,
+          'developer-token': DEVELOPER_TOKEN
+        }
+      }
+    );
+    const customerData = await customerRes.json();
+    if (!customerData.resourceNames || customerData.resourceNames.length === 0) {
+      return res.status(400).json({ error: 'No accessible Google Ads customer found' });
+    }
+    const customerId = customerData.resourceNames[0].split('/')[1];
+
+    // Step 1: Create the campaign budget
+    const budgetMicros = Math.round(parseFloat(budget) * 1000000);
+    const budgetRes = await fetch(
+      `https://googleads.googleapis.com/v24/customers/${customerId}/campaignBudgets:mutate`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${access_token}`,
+          'developer-token': DEVELOPER_TOKEN,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          operations: [{
+            create: {
+              name: `${campaignName} Budget ${Date.now()}`,
+              amountMicros: budgetMicros,
+              deliveryMethod: 'STANDARD'
+            }
+          }]
+        })
+      }
+    );
+    const budgetData = await budgetRes.json();
+    if (budgetData.error) {
+      console.error('Budget creation error:', JSON.stringify(budgetData.error));
+      return res.status(400).json({ error: 'Failed to create campaign budget', details: budgetData.error });
+    }
+    const budgetResourceName = budgetData.results[0].resourceName;
+
+    // Step 2: Create the campaign itself (PAUSED for safety)
+    const campaignRes = await fetch(
+      `https://googleads.googleapis.com/v24/customers/${customerId}/campaigns:mutate`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${access_token}`,
+          'developer-token': DEVELOPER_TOKEN,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          operations: [{
+            create: {
+              name: campaignName,
+              advertisingChannelType: 'SEARCH',
+              status: 'PAUSED',
+              campaignBudget: budgetResourceName,
+              manualCpc: {},
+              networkSettings: {
+                targetGoogleSearch: true,
+                targetSearchNetwork: true,
+                targetContentNetwork: false,
+                targetPartnerSearchNetwork: false
+              }
+            }
+          }]
+        })
+      }
+    );
+    const campaignData = await campaignRes.json();
+    if (campaignData.error) {
+      console.error('Campaign creation error:', JSON.stringify(campaignData.error));
+      return res.status(400).json({ error: 'Failed to create campaign', details: campaignData.error });
+    }
+
+    // Save a local record too, for our own dashboard display
     await sequelize.query(`
       CREATE TABLE IF NOT EXISTS google_ads_campaigns (
         id SERIAL PRIMARY KEY,
@@ -119,21 +201,20 @@ router.post('/campaigns/create', async (req, res) => {
         created_at TIMESTAMP DEFAULT NOW()
       )
     `);
+    const [result] = await sequelize.query(
+      `INSERT INTO google_ads_campaigns (campaign_name, budget, status)
+       VALUES (:campaignName, :budget, 'paused') RETURNING *`,
+      { replacements: { campaignName, budget } }
+    );
 
-   const [result] = await sequelize.query(
-  `INSERT INTO google_ads_campaigns (campaign_name, budget)
-   VALUES (:campaignName, :budget) RETURNING *`,
-  { replacements: { campaignName, budget } }
-);
-
-    res.json({ success: true, campaign: result[0] });
+    res.json({ success: true, campaign: result[0], googleCampaign: campaignData.results[0] });
   } catch (error) {
     console.error('Create campaign error:', error);
     res.status(500).json({ error: 'Failed to create campaign' });
   }
 });
 
-// ─── GET STATUS ──────────────────────────────────────────────
+//─── GET STATUS ──────────────────────────────────────────────
 router.get('/status', async (req, res) => {
   try {
    const [result] = await sequelize.query(
