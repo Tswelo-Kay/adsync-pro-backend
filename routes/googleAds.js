@@ -80,7 +80,7 @@ if (rows.length === 0) {
 
     // Get customer ID
     const customerRes = await fetch(
-      'https://googleads.googleapis.com/v17/customers:listAccessibleCustomers',
+      'https://googleads.googleapis.com/v24/customers:listAccessibleCustomers',
       {
         headers: {
           'Authorization': `Bearer ${access_token}`,
