@@ -76,7 +76,7 @@ if (rows.length === 0) {
   return res.status(401).json({ error: 'Google Ads not connected' });
 } 
 
-    const { access_token } = connection.rows[0];
+    const { access_token } = rows[0];
 
     // Get customer ID
     const customerRes = await fetch(
