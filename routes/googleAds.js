@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const { sequelize } = require('../config/database');
 
 // Google Ads OAuth Configuration
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
@@ -40,22 +41,22 @@ router.get('/callback', async (req, res) => {
     if (tokens.error) return res.status(400).json({ error: tokens.error });
 
     // Store tokens in DB
-    const db = req.app.locals.db;
-    await db.query(`
-      CREATE TABLE IF NOT EXISTS google_ads_connections (
-        id SERIAL PRIMARY KEY,
-        user_id INTEGER,
-        access_token TEXT,
-        refresh_token TEXT,
-        connected_at TIMESTAMP DEFAULT NOW()
-      )
-    `);
+    
+    await sequelize.query(`
+  CREATE TABLE IF NOT EXISTS google_ads_connections (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER,
+    access_token TEXT,
+    refresh_token TEXT,
+    connected_at TIMESTAMP DEFAULT NOW()
+  )
+`);
 
-    await db.query(
-      `INSERT INTO google_ads_connections (access_token, refresh_token) 
-       VALUES ($1, $2) ON CONFLICT DO NOTHING`,
-      [tokens.access_token, tokens.refresh_token]
-    );
+await sequelize.query(
+  `INSERT INTO google_ads_connections (access_token, refresh_token)
+   VALUES (:accessToken, :refreshToken) ON CONFLICT DO NOTHING`,
+  { replacements: { accessToken: tokens.access_token, refreshToken: tokens.refresh_token } }
+);
 
     res.redirect('https://adsyncpro.com/integrations.html?google=connected');
   } catch (error) {
@@ -67,14 +68,13 @@ router.get('/callback', async (req, res) => {
 // ─── GET CAMPAIGNS ───────────────────────────────────────────
 router.get('/campaigns', async (req, res) => {
   try {
-    const db = req.app.locals.db;
-    const connection = await db.query(
-      'SELECT * FROM google_ads_connections ORDER BY connected_at DESC LIMIT 1'
-    );
+   const [rows] = await sequelize.query(
+  'SELECT * FROM google_ads_connections ORDER BY connected_at DESC LIMIT 1'
+);
 
-    if (connection.rows.length === 0) {
-      return res.status(401).json({ error: 'Google Ads not connected' });
-    }
+if (rows.length === 0) {
+  return res.status(401).json({ error: 'Google Ads not connected' });
+} 
 
     const { access_token } = connection.rows[0];
 
@@ -101,17 +101,16 @@ router.get('/campaigns', async (req, res) => {
 router.post('/campaigns/create', async (req, res) => {
   const { campaignName, budget, platforms } = req.body;
   try {
-    const db = req.app.locals.db;
-    const connection = await db.query(
-      'SELECT * FROM google_ads_connections ORDER BY connected_at DESC LIMIT 1'
-    );
+    const [rows] = await sequelize.query(
+  'SELECT * FROM google_ads_connections ORDER BY connected_at DESC LIMIT 1'
+);
 
-    if (connection.rows.length === 0) {
+    if (rows.length === 0) {
       return res.status(401).json({ error: 'Google Ads not connected' });
     }
 
     // Store campaign in DB for now (full API integration after Basic access approval)
-    await db.query(`
+    await sequelize.query(`
       CREATE TABLE IF NOT EXISTS google_ads_campaigns (
         id SERIAL PRIMARY KEY,
         campaign_name TEXT,
@@ -121,13 +120,13 @@ router.post('/campaigns/create', async (req, res) => {
       )
     `);
 
-    const result = await db.query(
-      `INSERT INTO google_ads_campaigns (campaign_name, budget) 
-       VALUES ($1, $2) RETURNING *`,
-      [campaignName, budget]
-    );
+   const [result] = await sequelize.query(
+  `INSERT INTO google_ads_campaigns (campaign_name, budget)
+   VALUES (:campaignName, :budget) RETURNING *`,
+  { replacements: { campaignName, budget } }
+);
 
-    res.json({ success: true, campaign: result.rows[0] });
+    res.json({ success: true, campaign: result[0] });
   } catch (error) {
     console.error('Create campaign error:', error);
     res.status(500).json({ error: 'Failed to create campaign' });
@@ -137,14 +136,13 @@ router.post('/campaigns/create', async (req, res) => {
 // ─── GET STATUS ──────────────────────────────────────────────
 router.get('/status', async (req, res) => {
   try {
-    const db = req.app.locals.db;
-    const result = await db.query(
-      'SELECT id, connected_at FROM google_ads_connections ORDER BY connected_at DESC LIMIT 1'
-    );
-    res.json({
-      connected: result.rows.length > 0,
-      connectedAt: result.rows[0]?.connected_at || null
-    });
+   const [result] = await sequelize.query(
+  'SELECT id, connected_at FROM google_ads_connections ORDER BY connected_at DESC LIMIT 1'
+);
+res.json({
+  connected: result.length > 0,
+  connectedAt: result[0]?.connected_at || null
+}); 
   } catch (error) {
     res.json({ connected: false });
   }
